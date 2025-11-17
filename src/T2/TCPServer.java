@@ -1,7 +1,13 @@
 package T2;
 
 import java.net.*;
+
+//this is just an extra line for clarification
+
+
+
 import java.io.*;
+import java.util.*;
 
 public class TCPServer {
 
@@ -25,7 +31,7 @@ public class TCPServer {
 }
 
 class Connection extends Thread {
-
+	int counter = 0;
     DataInputStream in;
     DataOutputStream out;
     Socket clientSocket;
