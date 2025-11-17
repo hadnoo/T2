@@ -16,12 +16,13 @@ public class TCPServer {
             
             //create an array of threads 
             ArrayList<Connection> connections = new ArrayList<>();
+            Scanner s = new Scanner(System.in); 
 
             // Server runs continuously, accepting new clients
             while (true) {
                 // Accept each client in a loop and handle it in a separate thread
             	Socket client = listenSocket.accept();
-            	Connection c = new Connection(client); 
+            	Connection c = new Connection(client);
             	connections.add(c); 
             	c.start(); 
             }
