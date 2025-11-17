@@ -17,6 +17,7 @@ public class TCPServer {
             //create an array of threads 
             ArrayList<Connection> connections = new ArrayList<>();
             Scanner s = new Scanner(System.in); 
+            Scanner ss = new Scanner(System.in); 
 
             // Server runs continuously, accepting new clients
             while (true) {
