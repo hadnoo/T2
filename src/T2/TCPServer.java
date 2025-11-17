@@ -1,7 +1,9 @@
 package T2;
 
 import java.net.*;
+import java.util.ArrayList;
 import java.io.*;
+import java.util.Scanner;
 
 public class TCPServer {
 
@@ -11,11 +13,17 @@ public class TCPServer {
         try {
             // Create a server socket and listen on the specified port
             ServerSocket listenSocket = new ServerSocket(PORT);
+            
+            //create an array of threads 
+            ArrayList<Connection> connections = new ArrayList<>();
 
             // Server runs continuously, accepting new clients
             while (true) {
-                // Each accepted client is handled in a separate thread
-                new Connection(listenSocket.accept()).start();
+                // Accept each client in a loop and handle it in a separate thread
+            	Socket client = listenSocket.accept();
+            	Connection c = new Connection(client); 
+            	connections.add(c); 
+            	c.start(); 
             }
 
         } catch (IOException e) {
