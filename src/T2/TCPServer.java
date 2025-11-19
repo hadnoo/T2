@@ -1,54 +1,54 @@
 package T2;
 
 import java.net.*;
-import java.util.ArrayList;
 import java.io.*;
-import java.util.Scanner;
+import java.util.ArrayList; 
 
 public class TCPServer {
 
     public static final int PORT = 7896;
+    static java.util.List<Connection> connections =
+            java.util.Collections.synchronizedList(new ArrayList<>());
 
     public static void main(String[] args) {
         try {
-            // Create a server socket and listen on the specified port
             ServerSocket listenSocket = new ServerSocket(PORT);
-            
-            //create an array of threads 
-            ArrayList<Connection> connections = new ArrayList<>();
-            Scanner s = new Scanner(System.in); 
-            Scanner ss = new Scanner(System.in); 
-
-            // Server runs continuously, accepting new clients
             while (true) {
-                // Accept each client in a loop and handle it in a separate thread
-            	Socket client = listenSocket.accept();
-            	Connection c = new Connection(client);
-            	connections.add(c); 
-            	c.start(); 
+                Socket client = listenSocket.accept();
+                Connection c = new Connection(client);
+                connections.add(c);
+                c.start();
             }
 
         } catch (IOException e) {
             System.out.println("Listen: " + e.getMessage());
         }
     }
-}
 
+    public static void broadcast(String message, Connection sender) {
+        synchronized (connections) { // lock while iterating
+            for (Connection c : connections) {
+                if (c != null) {
+                    c.sendMessage(message);
+                    // or if you don't want to send to yourself:
+                    // if (c != sender) c.sendMessage(message);
+                }
+            }
+        }
+    }
+}
 class Connection extends Thread {
 
     DataInputStream in;
     DataOutputStream out;
     Socket clientSocket;
+    private String nickname;
 
     public Connection(Socket aClientSocket) {
         try {
-            // Store the socket representing this client's connection
             this.clientSocket = aClientSocket;
-
-            // Create input and output streams for communication
             this.in = new DataInputStream(clientSocket.getInputStream());
             this.out = new DataOutputStream(clientSocket.getOutputStream());
-
         } catch (IOException e) {
             System.out.println("Connection: " + e.getMessage());
         }
@@ -56,22 +56,35 @@ class Connection extends Thread {
 
     public void run() {
         try {
-            // Read a UTF string sent by the client
-            String data = in.readUTF();
+            out.writeUTF("Please enter your nickname: ");
+            nickname = in.readUTF();
+            System.out.println(nickname + " connected!");
+            TCPServer.broadcast(nickname + " joined the chat!", this);
 
-            // Echo the received string back to the client
-            out.writeUTF(data);
+            String message;
+            while (true) {
+                message = in.readUTF(); // blocks, throws on disconnect
+                TCPServer.broadcast(nickname + ": " + message, this);
+            }
 
         } catch (IOException e) {
-            System.out.println("IO: " + e.getMessage());
-
+            System.out.println("Client " + nickname + " disconnected: " + e.getMessage());
         } finally {
-            // Always close the client socket when done
             try {
                 clientSocket.close();
-            } catch (IOException e) {
-                // Ignored: close failed
-            }
+            } catch (IOException ignored) {}
+
+            // remove from list
+            TCPServer.connections.remove(this);
+        }
+    }
+
+    public void sendMessage(String message) {
+        try {
+            out.writeUTF(message);
+        } catch (IOException e) {
+            // if sending fails, you might also want to close and remove this connection
+            System.out.println("Failed to send to " + nickname + ": " + e.getMessage());
         }
     }
 }
