@@ -18,12 +18,6 @@ public class TCPClient {
             String nickname = scanner.nextLine();
             out.writeUTF(nickname);
 
-            // Optional: first server broadcast after joining
-            // (could be "X joined the chat" etc.)
-            // You can skip this read if you want, or keep it:
-            // String first = in.readUTF();
-            // System.out.println(first);
-
             // Thread that listens for messages from server
             Thread listener = new Thread(() -> {
                 try {
@@ -42,6 +36,12 @@ public class TCPClient {
             while (true) {
                 String msg = scanner.nextLine();
                 out.writeUTF(msg);
+
+                // if the user types /quit, we exit the loop and close the socket
+                if (msg.equalsIgnoreCase("/quit")) {
+                    System.out.println("You left the chat.");
+                    break;
+                }
             }
 
         } catch (IOException e) {
